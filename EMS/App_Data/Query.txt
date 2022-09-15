@@ -1,0 +1,277 @@
+﻿
+
+
+alter proc FetchAllDepartment-- 1
+@departmentId int
+as
+begin
+select * from Departments
+where ((@departmentId is NULL) or (Id=@departmentId))
+end
+
+create proc InsertDepartment --null
+@departmentName varchar(50) 
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ BEGIN TRY  
+     insert into Departments values (@departmentName)
+	 set @status=1
+	 set @message=@departmentName+' was added successfully'
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An error occurred while trying to insert department'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+select * from Departments
+
+alter proc FetchAllRoles --1
+@id int
+as
+begin
+select * from Roles
+where ((@id is NULL) or (Id=@id))
+end
+
+create proc InsertRole null
+@roleName varchar(50) 
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ BEGIN TRY  
+     insert into Roles values (@roleName)
+	 set @status=1
+	 set @message=@roleName+' was added successfully'
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An error occurred while trying to insert role'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+
+create proc FetchAllEmployeeLevels null
+@id int
+as
+begin
+  select * from EmployeeLevels
+  where ((@id is NULL) or (Id=@id))
+end
+
+create proc InsertEmployeeLevel-- null
+@levelId varchar(50),
+@Salary decimal(18,2)
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ BEGIN TRY  
+     insert into EmployeeLevels values (@levelId,@Salary)
+	 set @status=1
+	 set @message=@levelId+' was added successfully'
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An error occurred while trying to insert level'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+alter proc FetchAllEmployees null
+@id int
+as
+begin
+  select e.Id, d.[Name] DepartmentName, l.LevelName [Level], l.Salary from Employees e
+  join Departments d on e.DepartmentId=d.Id
+  join Users u on e.UserId=u.Id
+  join EmployeeLevels l on e.LevelId=l.Id
+  where ((@id is NULL) or (e.Id=@id))
+end
+
+alter proc InsertEmployee --null, null, null
+@departmentId int,
+@userId int,
+@levelId int
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ declare @departmentCount int
+ declare @userCount int
+ declare @levelCount int
+ declare @departmentUserLevelCount int
+ BEGIN TRY  
+     select @departmentCount = count(Id) from Departments where Id=@departmentId
+	 select @userCount = count(Id) from Users where Id=@userId
+	 select @levelCount = count(Id) from EmployeeLevels where Id=@levelId
+	 select @departmentUserLevelCount=count(Id) from Employees 
+	 where DepartmentId=@departmentId and UserId=@userId and LevelId=@levelId
+	 if(@departmentCount=0)
+	 begin
+	 set @status=0
+	 set @message='The department Id ='+convert(varchar, @departmentId)+' is invalid'
+	 
+	 end
+
+	 else if(@userCount=0)
+	 begin
+	 set @status=0
+	 set @message='The user Id ='+convert(varchar, @userId)+' is invalid'
+	 end
+
+	 else if(@levelCount=0)
+	 begin
+	 set @status=0
+	 set @message='The level Id ='+convert(varchar,@levelId)+' is invalid'
+	 end
+
+	 else if(@departmentUserLevelCount>0)
+	 begin
+	 set @status=0
+	 set @message='This record is invalid'
+	 end
+
+	 else
+	 begin
+
+     insert into Employees values (@departmentId,@userId,@levelId,getdate())
+	 set @status=1
+	 set @message='The Employee was added successfully'
+
+	 end
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An exception occurred while trying to insert Employee'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+
+create proc FetchAllUserRoles null,null
+@userId int,
+@roleId int
+as
+begin
+  select * from UserRoles
+  where ((@userId is NULL) or (UserId=@userId))
+  and ((@roleId is NULL) or (RoleId=@roleId))
+end
+
+create proc InsertUserRole --null, null, null
+@userId int,
+@roleId int
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ declare @userCount int
+ declare @roleCount int
+ declare @userRoleCount int
+ BEGIN TRY  
+	 select @userCount = count(Id) from Users where Id=@userId
+	 select @roleCount = count(Id) from Roles where Id=@roleId
+	 select @userRoleCount = count(Id) from UserRoles where UserId=@userId and RoleId=@roleId
+	 if(@userCount=0)
+	 begin
+	 set @status=0
+	 set @message='The user Id ='+convert(varchar, @userId)+' is invalid'
+	 
+	 end
+
+	 else if(@roleCount=0)
+	 begin
+	 set @status=0
+	 set @message='The role Id ='+convert(varchar, @roleId)+' is invalid'
+	 end
+
+	 else if(@userRoleCount>0)
+	 begin
+	 set @status=0
+	 set @message='This is a duplicate configuration'
+	 end
+	 else
+	 begin
+
+     insert into UserRoles values (@userId,@roleId)
+	 set @status=1
+	 set @message='The User Role was added successfully'
+
+	 end
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An exception occurred while trying to insert User Role'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+select * from UserRoles
+
+
+create proc InsertUser 'petereikore', 'password', 'petereikore@gmail.com','07068352435'
+@username varchar(50),
+@password varchar(50),
+@email varchar(50),
+@phone varchar(20)
+as
+begin
+ declare @status bit
+ declare @message varchar(100)
+ declare @usernameCount int
+ declare @emailCount int
+ declare @phoneCount int
+ BEGIN TRY  
+	 select @usernameCount = count(Id) from Users where Username=@username
+	 select @emailCount = count(Id) from Users where Email=@email
+	 select @phoneCount = count(Id) from Users where Phone=@phone
+	 if(@usernameCount>0)
+	 begin
+	 set @status=0
+	 set @message='The username '+@username+' is taken'
+	 
+	 end
+
+	 else if(@emailCount>0)
+	 begin
+	 set @status=0
+	 set @message='The email '+@email+' is taken'
+	 end
+
+	 else if(@phoneCount>0)
+	 begin
+	 set @status=0
+	 set @message='The phone '+@phone+' is taken'
+	 end
+	 else
+	 begin
+
+     insert into Users values (@username,@password,@email,@phone,1)
+	 set @status=1
+	 set @message='The User was added successfully'
+
+	 end
+END TRY  
+BEGIN CATCH  
+      set @status=0
+	 set @message='An exception occurred while trying to insert User'
+END CATCH  
+
+ select @status [status], @message [message]  
+end
+
+
+
+
+
