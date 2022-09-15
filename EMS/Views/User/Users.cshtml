@@ -1,0 +1,33 @@
+﻿@model List<EMS.DatabaseEntities.User>
+@{
+    ViewBag.Title = "Users";
+    int sn = 0;
+}
+
+<h2>Users</h2>
+
+<a href="/User/Create" class="btn btn-primary">Create</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>s/n</th>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Phone</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            ++sn;
+            <tr>
+                <td>@sn</td>
+                <td>@item.Email</td>
+                <td>@item.Username</td>
+                <td>@item.Phone</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
